@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idea Submission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .admin-panel {
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        .idea-box {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Submit Your Idea</h2>
+        <input type="text" id="name" placeholder="Your Name" required>
+        <input type="text" id="phone" placeholder="Your Phone Number" required>
+        <textarea id="idea" rows="5" placeholder="Enter your idea here..." required></textarea>
+        <button onclick="submitIdea()">Submit Idea</button>
+
+        <div id="admin-login">
+            <h3>Admin Login</h3>
+            <input type="password" id="admin-password" placeholder="Enter Admin Password">
+            <button onclick="adminLogin()">Login</button>
+        </div>
+
+        <div class="admin-panel" id="admin-panel">
+            <h3>Submitted Ideas</h3>
+            <div id="ideas-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Store submitted ideas
+        let ideas = [];
+
+        function submitIdea() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const idea = document.getElementById('idea').value;
+
+            if (name && phone && idea) {
+                // Save the idea locally (you can replace this with a backend if needed)
+                ideas.push({ name, phone, idea });
+
+                // Clear the input fields
+                document.getElementById('name').value = '';
+                document.getElementById('phone').value = '';
+                document.getElementById('idea').value = '';
+
+                alert('Your idea has been submitted!');
+            } else {
+                alert('Please fill in all fields.');
+            }
+        }
+
+        function adminLogin() {
+            const password = document.getElementById('admin-password').value;
+
+            if (password === 'All@fadis') {
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('admin-login').style.display = 'none';
+
+                // Display submitted ideas
+                const ideasList = document.getElementById('ideas-list');
+                ideasList.innerHTML = '';
+                ideas.forEach((item, index) => {
+                    const ideaBox = document.createElement('div');
+                    ideaBox.className = 'idea-box';
+                    ideaBox.innerHTML = `
+                        <p><strong>Name:</strong> ${item.name}</p>
+                        <p><strong>Phone:</strong> ${item.phone}</p>
+                        <p><strong>Idea:</strong> ${item.idea}</p>
+                    `;
+                    ideasList.appendChild(ideaBox);
+                });
+            } else {
+                alert('Incorrect password. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
