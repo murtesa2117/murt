@@ -3,131 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Idea Submission</title>
+    <title>Idea Submission Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            width: 90%;
-            max-width: 500px;
-            background-color: #ffffff;
             padding: 20px;
+        }
+        .form-container {
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
         }
-        h2 {
-            text-align: center;
-            color: #333;
+        .form-group {
+            margin-bottom: 15px;
         }
-        input, textarea {
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], select, textarea {
             width: 100%;
             padding: 10px;
-            margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        button {
-            width: 100%;
-            padding: 10px;
+        textarea {
+            height: 100px;
+        }
+        #submitBtn {
             background-color: #28a745;
-            color: white;
+            color: #fff;
+            padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #218838;
-        }
-        .admin-panel {
-            margin-top: 20px;
+        #adminSection, #passwordInput, #messageBox {
             display: none;
-            text-align: center;
+            margin-top: 20px;
         }
-        .idea-box {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border: 1px solid #ddd;
-            margin-top: 10px;
+        #adminBtn {
+            margin-top: 20px;
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
             border-radius: 5px;
+            cursor: pointer;
+        }
+        .message {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .deleteBtn {
+            background-color: #dc3545;
+            color: #fff;
+            padding: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            float: right;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Submit Your Idea</h2>
-        <input type="text" id="name" placeholder="Your Name" required>
-        <input type="text" id="phone" placeholder="Your Phone Number" required>
-        <textarea id="idea" rows="5" placeholder="Enter your idea here..." required></textarea>
-        <button onclick="submitIdea()">Submit Idea</button>
 
-        <div id="admin-login">
-            <h3>Admin Login</h3>
-            <input type="password" id="admin-password" placeholder="Enter Admin Password">
-            <button onclick="adminLogin()">Login</button>
+<div class="form-container">
+    <h2>Submit Your Idea</h2>
+    <form id="ideaForm">
+        <div class="form-group">
+            <label for="userName">Your Name:</label>
+            <input type="text" id="userName" name="userName" required>
         </div>
+        <div class="form-group">
+            <label for="countryCode">Country Code:</label>
+            <select id="countryCode" name="countryCode" required>
+                <option value="+251">Ethiopia (+251)</option>
+                <option value="+1">United States (+1)</option>
+                <option value="+44">United Kingdom (+44)</option>
+                <!-- Add more country codes here -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="phoneNumber">Phone Number:</label>
+            <input type="text" id="phoneNumber" name="phoneNumber" required>
+        </div>
+        <div class="form-group">
+            <label for="userIdea">Your Idea:</label>
+            <textarea id="userIdea" name="userIdea" required></textarea>
+        </div>
+        <button type="button" id="submitBtn">Submit</button>
+    </form>
 
-        <div class="admin-panel" id="admin-panel">
-            <h3>Submitted Ideas</h3>
-            <div id="ideas-list"></div>
-        </div>
+    <button id="adminBtn">Admin Section</button>
+
+    <div id="passwordInput">
+        <input type="password" id="adminPassword" placeholder="Enter Admin Password">
+        <button id="passwordSubmitBtn">Submit</button>
     </div>
 
-    <script>
-        // Store submitted ideas
-        let ideas = [];
+    <div id="messageBox">
+        <h3>Submitted Messages</h3>
+        <!-- Messages will be dynamically added here -->
+    </div>
+</div>
 
-        function submitIdea() {
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const idea = document.getElementById('idea').value;
+<script>
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
 
-            if (name && phone && idea) {
-                // Save the idea locally (you can replace this with a backend if needed)
-                ideas.push({ name, phone, idea });
+    function saveMessages() {
+        localStorage.setItem('messages', JSON.stringify(messages));
+    }
 
-                // Clear the input fields
-                document.getElementById('name').value = '';
-                document.getElementById('phone').value = '';
-                document.getElementById('idea').value = '';
-
-                alert('Your idea has been submitted!');
-            } else {
-                alert('Please fill in all fields.');
+    function deleteOldMessages() {
+        const now = new Date();
+        messages.forEach((message, index) => {
+            const messageDate = new Date(message.timestamp);
+            const timeDiff = now - messageDate;
+            const daysDiff = timeDiff / (1000 * 3600 * 24);
+            if (daysDiff > 30) {
+                messages.splice(index, 1);
             }
+        });
+        saveMessages();
+    }
+
+    function displayMessages() {
+        const messageBox = document.getElementById('messageBox');
+        messageBox.innerHTML = '<h3>Submitted Messages</h3>';
+        messages.forEach((message, index) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <strong>${message.name} (${message.phone})</strong> <br>
+                <small>${message.timestamp}</small> <br>
+                ${message.text}
+                <button class="deleteBtn" onclick="deleteMessage(${index})">Delete</button>
+            `;
+            messageBox.appendChild(messageDiv);
+        });
+    }
+
+    function deleteMessage(index) {
+        messages.splice(index, 1);
+        saveMessages();
+        displayMessages();
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        const userName = document.getElementById('userName').value.trim();
+        const userIdea = document.getElementById('userIdea').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        const countryCode = document.getElementById('countryCode').value;
+
+        if (userName.length < 3) {
+            alert('Name must be greater than 3 characters!');
+            return;
         }
 
-        function adminLogin() {
-            const password = document.getElementById('admin-password').value;
+        const date = new Date();
+        const timeStamp = date.toLocaleString();
 
-            if (password === 'All@fadis') {
-                document.getElementById('admin-panel').style.display = 'block';
-                document.getElementById('admin-login').style.display = 'none';
+        messages.push({
+            name: userName,
+            phone: `${countryCode}${phoneNumber}`,
+            text: userIdea,
+            timestamp: timeStamp
+        });
 
-                // Display submitted ideas
-                const ideasList = document.getElementById('ideas-list');
-                ideasList.innerHTML = '';
-                ideas.forEach((item, index) => {
-                    const ideaBox = document.createElement('div');
-                    ideaBox.className = 'idea-box';
-                    ideaBox.innerHTML = `
-                        <p><strong>Name:</strong> ${item.name}</p>
-                        <p><strong>Phone:</strong> ${item.phone}</p>
-                        <p><strong>Idea:</strong> ${item.idea}</p>
-                    `;
-                    ideasList.appendChild(ideaBox);
-                });
-            } else {
-                alert('Incorrect password. Please try again.');
-            }
+        saveMessages();
+        alert('Your message has been submitted successfully! We will try to work harder.');
+        document.getElementById('ideaForm').reset();
+        displayMessages();
+    });
+
+    document.getElementById('adminBtn').addEventListener('click', function() {
+        document.getElementById('passwordInput').style.display = 'block';
+    });
+
+    document.getElementById('passwordSubmitBtn').addEventListener('click', function() {
+        const password = document.getElementById('adminPassword').value;
+        if (password === 'All@fadis') {
+            alert('Password correct');
+            document.getElementById('passwordInput').style.display = 'none';
+            document.getElementById('messageBox').style.display = 'block';
+            displayMessages();
+        } else {
+            alert('Incorrect password!');
         }
-    </script>
+    });
+
+    // Run the deleteOldMessages function when the page loads
+    deleteOldMessages();
+</script>
+
 </body>
 </html>
