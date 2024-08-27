@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Idea Submission Form</title>
+    <title>Idea and Fatwa Question Submission</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,7 +33,7 @@
         textarea {
             height: 100px;
         }
-        #submitBtn {
+        button {
             background-color: #28a745;
             color: #fff;
             padding: 10px;
@@ -41,20 +41,14 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        #adminSection, #passwordInput, #messageBox {
+        #adminSection, #passwordInput, #messageBox, #fatwaMessageBox, #fatwaFormContainer {
             display: none;
             margin-top: 20px;
         }
         #adminBtn {
-            margin-top: 20px;
             background-color: #007bff;
-            color: #fff;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
-        .message {
+        .message, .fatwa-message {
             background-color: #e9ecef;
             border: 1px solid #ced4da;
             border-radius: 5px;
@@ -70,19 +64,46 @@
             cursor: pointer;
             float: right;
         }
+        #fatwaQuestionsLink {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #languageSelector {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>Submit Your Idea</h2>
+<!-- Language Selector -->
+<select id="languageSelector">
+    <option value="en">English</option>
+    <option value="am">Amharic</option>
+    <option value="ti">Tigrinya</option>
+    <option value="om">Afaan Oromoo</option>
+    <option value="ar">Arabic</option>
+</select>
+
+<!-- Navigation Button -->
+<button id="fatwaQuestionsLink">Fatwa Questions</button>
+
+<!-- Idea Submission Form -->
+<div class="form-container" id="ideaFormContainer">
+    <h2 id="ideaTitle">Submit Your Idea</h2>
     <form id="ideaForm">
         <div class="form-group">
-            <label for="userName">Your Name:</label>
+            <label for="userName" id="userNameLabel">Your Name:</label>
             <input type="text" id="userName" name="userName" required>
         </div>
         <div class="form-group">
-            <label for="countryCode">Country Code:</label>
+            <label for="countryCode" id="countryCodeLabel">Country Code:</label>
             <select id="countryCode" name="countryCode" required>
                 <option value="+251">Ethiopia (+251)</option>
                 <option value="+1">United States (+1)</option>
@@ -91,69 +112,104 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="phoneNumber">Phone Number:</label>
+            <label for="phoneNumber" id="phoneNumberLabel">Phone Number:</label>
             <input type="text" id="phoneNumber" name="phoneNumber" required>
         </div>
         <div class="form-group">
-            <label for="userIdea">Your Idea:</label>
+            <label for="userIdea" id="userIdeaLabel">Your Idea:</label>
             <textarea id="userIdea" name="userIdea" required></textarea>
         </div>
         <button type="button" id="submitBtn">Submit</button>
     </form>
+</div>
 
-    <button id="adminBtn">Admin Section</button>
+<!-- Fatwa Question Form -->
+<div class="form-container" id="fatwaFormContainer">
+    <h2 id="fatwaTitle">Submit Your Fatwa Question</h2>
+    <form id="fatwaForm">
+        <div class="form-group">
+            <label for="fatwaName" id="fatwaNameLabel">Your Name:</label>
+            <input type="text" id="fatwaName" name="fatwaName" required>
+        </div>
+        <div class="form-group">
+            <label for="fatwaQuestion" id="fatwaQuestionLabel">Your Question:</label>
+            <textarea id="fatwaQuestion" name="fatwaQuestion" required></textarea>
+        </div>
+        <button type="button" id="fatwaSubmitBtn">Submit</button>
+    </form>
+</div>
 
-    <div id="passwordInput">
-        <input type="password" id="adminPassword" placeholder="Enter Admin Password">
-        <button id="passwordSubmitBtn">Submit</button>
-    </div>
+<!-- Admin Section -->
+<button id="adminBtn">Admin Section</button>
+<div id="passwordInput">
+    <input type="password" id="adminPassword" placeholder="Enter Admin Password">
+    <button id="passwordSubmitBtn">Submit</button>
+</div>
 
-    <div id="messageBox">
-        <h3>Submitted Messages</h3>
-        <!-- Messages will be dynamically added here -->
-    </div>
+<div id="messageBox">
+    <h3 id="messageTitle">Submitted Messages</h3>
+    <!-- Messages will be dynamically added here -->
+</div>
+
+<div id="fatwaMessageBox">
+    <h3 id="fatwaMessageTitle">Fatwa Questions</h3>
+    <!-- Fatwa questions will be dynamically added here -->
 </div>
 
 <script>
-    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    const ideaMessages = JSON.parse(localStorage.getItem('ideaMessages')) || [];
+    const fatwaQuestions = JSON.parse(localStorage.getItem('fatwaQuestions')) || [];
+    const expirationDays = 30;
 
-    function saveMessages() {
-        localStorage.setItem('messages', JSON.stringify(messages));
+    function saveIdeaMessages() {
+        localStorage.setItem('ideaMessages', JSON.stringify(ideaMessages));
     }
 
-    function deleteOldMessages() {
+    function saveFatwaQuestions() {
+        localStorage.setItem('fatwaQuestions', JSON.stringify(fatwaQuestions));
+    }
+
+    function deleteOldMessages(messages, type) {
         const now = new Date();
         messages.forEach((message, index) => {
             const messageDate = new Date(message.timestamp);
             const timeDiff = now - messageDate;
             const daysDiff = timeDiff / (1000 * 3600 * 24);
-            if (daysDiff > 30) {
-                messages.splice(index, 1);
+            if (daysDiff > expirationDays) {
+                if (type === 'idea') ideaMessages.splice(index, 1);
+                else if (type === 'fatwa') fatwaQuestions.splice(index, 1);
             }
         });
-        saveMessages();
+        if (type === 'idea') saveIdeaMessages();
+        else if (type === 'fatwa') saveFatwaQuestions();
     }
 
-    function displayMessages() {
-        const messageBox = document.getElementById('messageBox');
-        messageBox.innerHTML = '<h3>Submitted Messages</h3>';
+    function displayMessages(type) {
+        const messageBox = type === 'idea' ? document.getElementById('messageBox') : document.getElementById('fatwaMessageBox');
+        messageBox.innerHTML = `<h3>${type === 'idea' ? 'Submitted Messages' : 'Fatwa Questions'}</h3>`;
+        const messages = type === 'idea' ? ideaMessages : fatwaQuestions;
         messages.forEach((message, index) => {
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
+            messageDiv.className = type === 'idea' ? 'message' : 'fatwa-message';
             messageDiv.innerHTML = `
-                <strong>${message.name} (${message.phone})</strong> <br>
+                <strong>${message.name}</strong> <br>
                 <small>${message.timestamp}</small> <br>
                 ${message.text}
-                <button class="deleteBtn" onclick="deleteMessage(${index})">Delete</button>
+                ${type === 'idea' ? `<button class="deleteBtn" onclick="deleteMessage(${index}, '${type}')">Delete</button>` : ''}
             `;
             messageBox.appendChild(messageDiv);
         });
     }
 
-    function deleteMessage(index) {
-        messages.splice(index, 1);
-        saveMessages();
-        displayMessages();
+    function deleteMessage(index, type) {
+        if (type === 'idea') {
+            ideaMessages.splice(index, 1);
+            saveIdeaMessages();
+        } else if (type === 'fatwa') {
+            fatwaQuestions.splice(index, 1);
+            saveFatwaQuestions();
+        }
+        displayMessages(type);
     }
 
     document.getElementById('submitBtn').addEventListener('click', function() {
@@ -170,17 +226,46 @@
         const date = new Date();
         const timeStamp = date.toLocaleString();
 
-        messages.push({
+        ideaMessages.push({
             name: userName,
             phone: `${countryCode}${phoneNumber}`,
             text: userIdea,
             timestamp: timeStamp
         });
 
-        saveMessages();
+        saveIdeaMessages();
         alert('Your message has been submitted successfully! We will try to work harder.');
         document.getElementById('ideaForm').reset();
-        displayMessages();
+        displayMessages('idea');
+    });
+
+    document.getElementById('fatwaSubmitBtn').addEventListener('click', function() {
+        const fatwaName = document.getElementById('fatwaName').value.trim();
+        const fatwaQuestion = document.getElementById('fatwaQuestion').value.trim();
+
+        if (fatwaName.length < 3) {
+            alert('Name must be greater than 3 characters!');
+            return;
+        }
+
+        if (!fatwaQuestion) {
+            alert('Question cannot be empty!');
+            return;
+        }
+
+        const date = new Date();
+        const timeStamp = date.toLocaleString();
+
+        fatwaQuestions.push({
+            name: fatwaName,
+            text: fatwaQuestion,
+            timestamp: timeStamp
+        });
+
+        saveFatwaQuestions();
+        alert('Your fatwa question has been submitted successfully!');
+        document.getElementById('fatwaForm').reset();
+        displayMessages('fatwa');
     });
 
     document.getElementById('adminBtn').addEventListener('click', function() {
@@ -190,17 +275,102 @@
     document.getElementById('passwordSubmitBtn').addEventListener('click', function() {
         const password = document.getElementById('adminPassword').value;
         if (password === 'All@fadis') {
-            alert('Password correct');
-            document.getElementById('passwordInput').style.display = 'none';
             document.getElementById('messageBox').style.display = 'block';
-            displayMessages();
+            document.getElementById('fatwaMessageBox').style.display = 'block';
+            displayMessages('idea');
+            displayMessages('fatwa');
         } else {
             alert('Incorrect password!');
         }
     });
 
-    // Run the deleteOldMessages function when the page loads
-    deleteOldMessages();
+    document.getElementById('fatwaQuestionsLink').addEventListener('click', function() {
+        document.getElementById('fatwaFormContainer').style.display = 'block';
+        document.getElementById('ideaFormContainer').style.display = 'none';
+    });
+
+    // Initialize and display messages and questions
+    deleteOldMessages(ideaMessages, 'idea');
+    deleteOldMessages(fatwaQuestions, 'fatwa');
+    displayMessages('idea');
+    displayMessages('fatwa');
+
+    // Language change handler
+    document.getElementById('languageSelector').addEventListener('change', function(event) {
+        const lang = event.target.value;
+        switch (lang) {
+            case 'en':
+                document.getElementById('ideaTitle').innerText = 'Submit Your Idea';
+                document.getElementById('fatwaTitle').innerText = 'Submit Your Fatwa Question';
+                document.getElementById('userNameLabel').innerText = 'Your Name:';
+                document.getElementById('countryCodeLabel').innerText = 'Country Code:';
+                document.getElementById('phoneNumberLabel').innerText = 'Phone Number:';
+                document.getElementById('userIdeaLabel').innerText = 'Your Idea:';
+                document.getElementById('fatwaNameLabel').innerText = 'Your Name:';
+                document.getElementById('fatwaQuestionLabel').innerText = 'Your Question:';
+                document.getElementById('submitBtn').innerText = 'Submit';
+                document.getElementById('fatwaSubmitBtn').innerText = 'Submit';
+                document.getElementById('adminBtn').innerText = 'Admin Section';
+                document.getElementById('passwordInput').querySelector('placeholder').innerText = 'Enter Admin Password';
+                break;
+            case 'am':
+                document.getElementById('ideaTitle').innerText = 'የእምንደኛ ሃሳብ አቅርብ';
+                document.getElementById('fatwaTitle').innerText = 'የፍትሐ ጥያቄ አቅርብ';
+                document.getElementById('userNameLabel').innerText = 'ስምዎ:';
+                document.getElementById('countryCodeLabel').innerText = 'የአገር ኮድ:';
+                document.getElementById('phoneNumberLabel').innerText = 'ስልኩን ቁጥር:';
+                document.getElementById('userIdeaLabel').innerText = 'የእምንደኛ ሃሳብ:';
+                document.getElementById('fatwaNameLabel').innerText = 'ስምዎ:';
+                document.getElementById('fatwaQuestionLabel').innerText = 'የጥያቄዎ:';
+                document.getElementById('submitBtn').innerText = 'አቅርብ';
+                document.getElementById('fatwaSubmitBtn').innerText = 'አቅርብ';
+                document.getElementById('adminBtn').innerText = 'አስተዳዳሪ ክፍል';
+                document.getElementById('passwordInput').querySelector('placeholder').innerText = 'አስተዳዳሪ የይለፍ ቃልን ግባ';
+                break;
+            case 'ti':
+                document.getElementById('ideaTitle').innerText = 'እቅድዎን ስጥ';
+                document.getElementById('fatwaTitle').innerText = 'የፍትሐ ጥያቄ ስጥ';
+                document.getElementById('userNameLabel').innerText = 'ስምዎ:';
+                document.getElementById('countryCodeLabel').innerText = 'የአገር ኮድ:';
+                document.getElementById('phoneNumberLabel').innerText = 'ስልኩን ቁጥር:';
+                document.getElementById('userIdeaLabel').innerText = 'እቅድዎ:';
+                document.getElementById('fatwaNameLabel').innerText = 'ስምዎ:';
+                document.getElementById('fatwaQuestionLabel').innerText = 'የጥያቄዎ:';
+                document.getElementById('submitBtn').innerText = 'ስጥ';
+                document.getElementById('fatwaSubmitBtn').innerText = 'ስጥ';
+                document.getElementById('adminBtn').innerText = 'አስተዳዳሪ ክፍል';
+                document.getElementById('passwordInput').querySelector('placeholder').innerText = 'አስተዳዳሪ የይለፍ ቃልን ግባ';
+                break;
+            case 'om':
+                document.getElementById('ideaTitle').innerText = 'Galmee Haaqumni';
+                document.getElementById('fatwaTitle').innerText = 'Gaaffii Fataawaa';
+                document.getElementById('userNameLabel').innerText = 'Maqaa Keessan:';
+                document.getElementById('countryCodeLabel').innerText = 'Koodii Biyyoolessaa:';
+                document.getElementById('phoneNumberLabel').innerText = 'Lakkoofsa Bilbilaa:';
+                document.getElementById('userIdeaLabel').innerText = 'Haaqumni Keessan:';
+                document.getElementById('fatwaNameLabel').innerText = 'Maqaa Keessan:';
+                document.getElementById('fatwaQuestionLabel').innerText = 'Gaaffii Keessan:';
+                document.getElementById('submitBtn').innerText = 'Ergaa';
+                document.getElementById('fatwaSubmitBtn').innerText = 'Ergaa';
+                document.getElementById('adminBtn').innerText = 'Kutaa Bulchiinsa';
+                document.getElementById('passwordInput').querySelector('placeholder').innerText = 'Maqaa Itti Gaafatamoo Galchi';
+                break;
+            case 'ar':
+                document.getElementById('ideaTitle').innerText = 'قدّم فكرتك';
+                document.getElementById('fatwaTitle').innerText = 'قدّم سؤال الفتوى';
+                document.getElementById('userNameLabel').innerText = 'اسمك:';
+                document.getElementById('countryCodeLabel').innerText = 'رمز الدولة:';
+                document.getElementById('phoneNumberLabel').innerText = 'رقم الهاتف:';
+                document.getElementById('userIdeaLabel').innerText = 'فكرتك:';
+                document.getElementById('fatwaNameLabel').innerText = 'اسمك:';
+                document.getElementById('fatwaQuestionLabel').innerText = 'سؤالك:';
+                document.getElementById('submitBtn').innerText = 'إرسال';
+                document.getElementById('fatwaSubmitBtn').innerText = 'إرسال';
+                document.getElementById('adminBtn').innerText = 'قسم الإدارة';
+                document.getElementById('passwordInput').querySelector('placeholder').innerText = 'أدخل كلمة مرور المسؤول';
+                break;
+        }
+    });
 </script>
 
 </body>
